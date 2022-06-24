@@ -7,7 +7,7 @@
 
 import Foundation
 
-extension FixedWidthInteger {
+extension FixedWidthInteger where Self: UnsignedInteger {
     
     /// Bytes array of the integer
     internal var bytes: [UInt8] {
@@ -15,9 +15,8 @@ extension FixedWidthInteger {
         var number = self
         var bytesArray = [UInt8](repeating: .zero, count: totalBytesCount)
         for index in 0..<totalBytesCount {
-            let byte = number & 0xff
-            number = (number - byte) / 256
-            bytesArray[totalBytesCount - index - 1] = UInt8(byte)
+            bytesArray[totalBytesCount - index - 1] = UInt8(number & 0xff)
+            number >>= 8
         }
         return bytesArray
     }
@@ -31,9 +30,8 @@ extension UInt8 {
         var byte = self
         var bitsArray = [Bit](repeating: .zero, count: totalBitsCount)
         for index in 0..<totalBitsCount {
-            let bit = byte & 0x01;
-            byte = (byte - bit) / 2;
-            bitsArray[totalBitsCount - index - 1] = Bit(bit)
+            bitsArray[totalBitsCount - index - 1] = Bit(byte & 0x01)
+            byte >>= 1
         }
         return bitsArray
     }
@@ -81,5 +79,99 @@ extension Sequence {
     /// - Returns: New mapped array
     internal func mapFlat<T>(_ transform: (Element) throws -> [T]) rethrows -> [T] {
         try self.reduce(into: [T]()) { $0.append(contentsOf: try transform($1)) }
+    }
+}
+
+extension IteratorProtocol<Bit> {
+    
+    /// Converts an iterator of bits to an array of bytes.
+    /// If itterator has number of bit not dividable to 8, the last bits are droped.
+    /// - Returns: Array of bytes.
+    internal var bytes: [UInt8] {
+        var bytes = [UInt8]()
+        var iterator = self
+        var currentByte: UInt8 = 0
+        var index = 0
+        while let bit = iterator.next() {
+            currentByte += UInt8(bit.value * (1 << (7 - index)))
+            index += 1
+            if index == 8 {
+                bytes.append(currentByte)
+                currentByte = 0
+                index = 0
+            }
+        }
+        return bytes
+    }
+}
+
+extension UnicodeScalar {
+    
+    /// Genarates a random unicode scalar with code point between `0...0xD7FF` or `0xE000...0x10FFFF`.
+    /// - Returns: Random unicode scalar
+    internal static func random() -> UnicodeScalar {
+        let totalPossibleChars: UInt32 = 0xD7FF + 0x10FFFF - 0xE000 + 2
+        let v = UInt32.random(in: 0..<totalPossibleChars)
+        return UnicodeScalar(v <= 0xD7FF ? v : v + 0xE000 - 0xD7FF - 1)!
+    }
+}
+
+extension String {
+    
+    /// Generates an utf8 key with specified length
+    /// - Parameter length: Length of key to generate
+    /// - Returns: Generated key
+    internal static func randomKey(length: UInt) -> String {
+        return (0..<length).reduce(into: "") { result, _ in
+            result.append(String(data: Data([UInt8.random(in: 33...126)]), encoding: .utf8)!)
+        }
+    }
+    
+    /// Genrates a random string with unicode scalar code points between `0...0xD7FF` or `0xE000...0x10FFFF`.
+    /// - Parameter length: Length of the string to generate.
+    /// - Returns: Random string
+    internal static func random(length: UInt) -> String {
+        return (0..<length).reduce(into: "") { result, _ in
+            let currentLength = result.count
+            while result.count != currentLength + 1 {
+                result.append(Character(UnicodeScalar.random()))
+            }
+        }
+    }
+    
+    /// Converts this utf8 string to bytes.
+    /// - Returns: Bytes of this utf8 string..
+    internal var utf8Bytes: [UInt8] {
+        return self.reduce(into: [UInt8]()) { list, char in
+            list.append(String(char).data(using: .utf8)!.last!)
+        }
+    }
+    
+    /// Converts string to array of bytes. One char converts to 4 bytes.
+    /// - Returns: String as array of bytes
+    internal var bytes: [UInt8] {
+        return self.mapFlat { $0.unicodeScalarCodePoint.bytes }
+    }
+}
+
+extension Array where Element == UInt8 {
+    
+    /// Converts sequence of bytes to utf8 string.
+    /// - Returns: Utf8 string of bytes.
+    internal var utf8String: String {
+        return String(data: Data(self), encoding: .utf8)!
+    }
+    
+    /// Converts sequence of bytes to string. 4 bytes converts to one char.
+    /// - Returns: Sequence of bytes as string
+    internal var string: String {
+        var currentInt: UInt32 = 0
+        return self.reduce(into: "") {
+            currentInt += UInt32($1) << (8 * (3 - $2 % 4))
+            if $2 % 4 == 3 {
+                $0.append(Character(UnicodeScalar(currentInt) ?? UnicodeScalar(0)))
+                currentInt = 0
+            }
+        }
     }
 }

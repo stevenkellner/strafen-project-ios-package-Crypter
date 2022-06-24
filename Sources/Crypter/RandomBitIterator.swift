@@ -20,14 +20,13 @@ internal struct RandomBitIterator: IteratorProtocol {
     /// - Parameter seed: Seed of the random bit iterator
     public init(seed: String) {
         self.pseudoRandom = PseudoRandom(seed: seed)
-        let bytes = UInt32(self.pseudoRandom.random() * Double(1<<32)).bytes
-        self.bytesToBitsIterator = BytesToBitIterator(bytes)
+        self.bytesToBitsIterator = BytesToBitIterator([self.pseudoRandom.randomByte()])
     }
+    
     
     public mutating func next() -> Bit? {
         guard let bit = self.bytesToBitsIterator.next() else {
-            let bytes = UInt32(self.pseudoRandom.random() * Double(1<<32)).bytes
-            self.bytesToBitsIterator = BytesToBitIterator(bytes)
+            self.bytesToBitsIterator = BytesToBitIterator([self.pseudoRandom.randomByte()])
             return self.next()
         }
         return bit

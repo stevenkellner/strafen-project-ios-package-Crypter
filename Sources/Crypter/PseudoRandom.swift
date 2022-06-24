@@ -64,10 +64,10 @@ internal struct PseudoRandom {
         for unicodeScalarCodePoint in data.unicodeScalars {
             n += Double(unicodeScalarCodePoint.value)
             var h = 0.02519603282416938 * n
-            n = h.rounded(.down)
+            n = h.rounded(.towardZero)
             h -= n
             h *= n
-            n = h.rounded(.down)
+            n = h.rounded(.towardZero)
             h -= n
             n += h * 0x100000000
         }
@@ -78,17 +78,23 @@ internal struct PseudoRandom {
     /// - Parameter n: Number `n`
     /// - Returns: Mashed number
     private static func mashResult(_ n: Double) -> Double {
-        return n.rounded(.down) * 2.3283064365386963e-10
+        return n.rounded(.towardZero) * 2.3283064365386963e-10
     }
     
     /// Generates next pseudo random number between [0.0, 1.0).
     /// - Returns: Random number between [0.0, 1.0)
-    public mutating func random() -> Double {
+    private mutating func random() -> Double {
         let t = 2091639 * self.state.state0 + self.state.constant * 2.3283064365386963e-10
         self.state.state0 = self.state.state1
         self.state.state1 = self.state.state2
         self.state.constant = t.rounded(.towardZero)
         self.state.state2 = t - self.state.constant
         return self.state.state2
+    }
+    
+    /// Generates next pseudo random number between 0 and 255.
+    /// - Returns: Random number between 0 and 255.
+    public mutating func randomByte() -> UInt8 {
+        return UInt8(self.random() * 256)
     }
 }
