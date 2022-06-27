@@ -142,7 +142,7 @@ public struct Crypter {
     /// Decrypts data with aes.
     /// - Parameter bytes: Data to decrypt
     /// - Returns: Decrypted data
-    @inlinable func decryptAes(_ data: Data) throws -> Data {
+    @inlinable public func decryptAes(_ data: Data) throws -> Data {
         return Data(try self.decryptAes(Array(data)))
     }
     
@@ -160,7 +160,7 @@ public struct Crypter {
     /// Encrypts data with vernam.
     /// - Parameter bytes: Data to encrypt
     /// - Returns: Encrypted data and key for vernam
-    @inlinable func encryptVernamCipher(_ data: Data) throws -> Data {
+    @inlinable public func encryptVernamCipher(_ data: Data) throws -> Data {
         return Data(try self.encryptVernamCipher(Array(data)))
     }
     
@@ -177,7 +177,7 @@ public struct Crypter {
     /// Decryptes data with vernam
     /// - Parameter bytes:  First 32 bytes is key for vernam, other bytes is text to decrypt
     /// - Returns: Decrypted data
-    @inlinable func decryptVernamCipher(_ data: Data) throws -> Data {
+    @inlinable public func decryptVernamCipher(_ data: Data) throws -> Data {
         return Data(try self.decryptVernamCipher(Array(data)))
     }
     
@@ -192,7 +192,7 @@ public struct Crypter {
     /// Encrypts data with vernam and then with aes.
     /// - Parameter bytes: Data to encrypt
     /// - Returns: Encrypted data
-    @inlinable func encryptVernamAndAes(_ data: Data) throws -> Data {
+    @inlinable public func encryptVernamAndAes(_ data: Data) throws -> Data {
         return Data(try self.encryptVernamAndAes(Array(data)))
     }
     
@@ -207,7 +207,7 @@ public struct Crypter {
     /// Decrypts data with aes and then with vernam.
     /// - Parameter encrypted: Data to decrypt
     /// - Returns: Decrypted data
-    @inlinable func decryptAesAndVernam(_ data: Data) throws -> Data {
+    @inlinable public func decryptAesAndVernam(_ data: Data) throws -> Data {
         return Data(try self.decryptAesAndVernam(Array(data)))
     }
 }
