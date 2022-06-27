@@ -217,13 +217,13 @@ final class CrypterTestSuite: XCTestSuite {
         }
         
         func testVernam1() throws {
-            let vernamEncryptedBytes = crypter.encryptVernamCipher(crypterTestData.vernamOriginal.bytes)
-            let vernamDecryptedBytes = crypter.decryptVernamCipher(vernamEncryptedBytes)
+            let vernamEncryptedBytes = try crypter.encryptVernamCipher(crypterTestData.vernamOriginal.bytes)
+            let vernamDecryptedBytes = try crypter.decryptVernamCipher(vernamEncryptedBytes)
             XCTAssertEqual(crypterTestData.vernamOriginal.bytes, vernamDecryptedBytes)
         }
         
         func testVernam2() throws {
-            let vernamDecryptedBytes = crypter.decryptVernamCipher(crypterTestData.vernamEncrypted.bytes)
+            let vernamDecryptedBytes = try crypter.decryptVernamCipher(crypterTestData.vernamEncrypted.bytes)
             XCTAssertEqual(crypterTestData.vernamOriginal.bytes, vernamDecryptedBytes)
         }
         
