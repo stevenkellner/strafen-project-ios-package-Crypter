@@ -211,3 +211,27 @@ public struct Crypter {
         return Data(try self.decryptAesAndVernam(Array(data)))
     }
 }
+
+extension Crypter {
+    
+    /// Encodes and encryptes data
+    /// - Parameter data: Data to encode or encrypt.
+    /// - Returns: Encoded and encrypted data.
+    public func encodeEncrypt<T>(_ data: T) throws -> String where T: Encodable {
+        let encoder = JSONEncoder()
+        let encodedData = try encoder.encode(data)
+        let encryptedData = try self.encryptVernamAndAes(encodedData)
+        return encryptedData.unishortString
+    }
+    
+    /// Decryptes and decodes data.
+    /// - Parameters:
+    ///   - type: Type of decrypted and decoded data.
+    ///   - data: Data to decrypt and decode.
+    /// - Returns: Decrypted and decoded data.
+    public func decryptDecode<T>(type: T.Type, _ data: String) throws -> T where T: Decodable {
+        let decoder = JSONDecoder()
+        let decryptedData = try self.decryptAesAndVernam(data.unishortData)
+        return try decoder.decode(type, from: decryptedData)
+    }
+}
