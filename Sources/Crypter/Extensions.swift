@@ -37,15 +37,6 @@ extension UInt8 {
     }
 }
 
-extension Character {
-    
-    /// Unicode scalar code point of the character
-    internal var unicodeScalarCodePoint: UInt32 {
-        let scalars = self.unicodeScalars
-        return scalars[scalars.startIndex].value
-    }
-}
-
 extension Collection {
     
     /// Reduces the collection into an initial result.
@@ -117,6 +108,36 @@ extension UnicodeScalar {
 }
 
 extension String {
+        
+    /// Errors that can occurs while encoding unishort string.
+    internal enum UnishortEncodingError: Error {
+        
+        /// Data is invalid to encode to unishort string.
+        case invalidUnicodeScalarData
+    }
+    
+    /// Initializes string by encoding specified unishort data.
+    /// - Parameter unishortData: Unishort data to encode.
+    public init(unishortData: Data) {
+        self.init()
+        for byte in unishortData {
+            self.append(Character(UnicodeScalar(byte)))
+        }
+    }
+    
+    /// Unishort data of this string.
+    public var unishortData: Data {
+        get throws {
+            var data = Data()
+            for char in self {
+                guard let value = char.unicodeScalars.first?.value, value <= UInt8.max else {
+                    throw UnishortEncodingError.invalidUnicodeScalarData
+                }
+                data.append(UInt8(value))
+            }
+            return data
+        }
+    }
     
     /// Generates an utf8 key with specified length
     /// - Parameter length: Length of key to generate
@@ -146,32 +167,38 @@ extension String {
             list.append(String(char).data(using: .utf8)!.last!)
         }
     }
+}
+
+extension Data {
     
-    /// Converts string to array of bytes. One char converts to 4 bytes.
-    /// - Returns: String as array of bytes
-    internal var bytes: [UInt8] {
-        return self.mapFlat { $0.unicodeScalarCodePoint.bytes }
+    /// Initializes data by encoding specified unishort string.
+    /// - Parameter unishortString: Unishort string to encode.
+    @inlinable public init(unishortString: String) throws {
+        self = try unishortString.unishortData
+    }
+    
+    /// Unishort string of this data.
+    @inlinable public var unishortString: String {
+        return String(unishortData: self)
     }
 }
 
 extension Array where Element == UInt8 {
     
+    /// Initializes bytes by encoding specified unishort string.
+    /// - Parameter unishortString: Unishort string to encode.
+    @inlinable public init(unishortString: String) throws {
+        self = Array(try unishortString.unishortData)
+    }
+    
+    /// Unishort string of this bytes.
+    @inlinable public var unishortString: String {
+        return String(unishortData: Data(self))
+    }
+    
     /// Converts sequence of bytes to utf8 string.
     /// - Returns: Utf8 string of bytes.
     internal var utf8String: String {
         return String(data: Data(self), encoding: .utf8)!
-    }
-    
-    /// Converts sequence of bytes to string. 4 bytes converts to one char.
-    /// - Returns: Sequence of bytes as string
-    internal var string: String {
-        var currentInt: UInt32 = 0
-        return self.reduce(into: "") {
-            currentInt += UInt32($1) << (8 * (3 - $2 % 4))
-            if $2 % 4 == 3 {
-                $0.append(Character(UnicodeScalar(currentInt) ?? UnicodeScalar(0)))
-                currentInt = 0
-            }
-        }
     }
 }

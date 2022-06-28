@@ -182,7 +182,7 @@ final class CrypterTestSuite: XCTestSuite {
     }
     
     final class CrypterTests: XCTestCase {
-        struct CrypterTestData: Codable {
+         struct CrypterTestData: Codable {
             let aesOriginal: Data
             let vernamOriginal: Data
             let aesVernamOriginal: Data
