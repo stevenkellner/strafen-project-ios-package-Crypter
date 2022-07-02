@@ -219,6 +219,8 @@ extension Crypter {
     /// - Returns: Encoded and encrypted data.
     public func encodeEncrypt<T>(_ data: T) throws -> String where T: Encodable {
         let encoder = JSONEncoder()
+        encoder.dateEncodingStrategy = .iso8601
+        encoder.dataEncodingStrategy = .base64
         let encodedData = try encoder.encode(data)
         let encryptedData = try self.encryptVernamAndAes(encodedData)
         return encryptedData.unishortString
@@ -231,6 +233,8 @@ extension Crypter {
     /// - Returns: Decrypted and decoded data.
     public func decryptDecode<T>(type: T.Type, _ data: String) throws -> T where T: Decodable {
         let decoder = JSONDecoder()
+        decoder.dateDecodingStrategy = .iso8601
+        decoder.dataDecodingStrategy = .base64
         let decryptedData = try self.decryptAesAndVernam(data.unishortData)
         return try decoder.decode(type, from: decryptedData)
     }
