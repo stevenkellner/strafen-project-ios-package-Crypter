@@ -235,3 +235,18 @@ extension Crypter {
         return try decoder.decode(type, from: decryptedData)
     }
 }
+
+extension Crypter.Keys: Decodable {
+    enum CodingKeys: String, CodingKey {
+        case encryptionKey
+        case initialisationVector
+        case vernamKey
+    }
+    
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.container(keyedBy: CodingKeys.self)
+        let encryptionKey = try container.decode(UTF8<Length32>.self, forKey: .encryptionKey)
+        let initialisationVector = try container.decode(UTF8<Length16>.self, forKey: .initialisationVector)
+        let vernamKey = try container.decode(UTF8<Length32>.self, forKey: .vernamKey)
+        self.init(encryptionKey: encryptionKey, initialisationVector: initialisationVector, vernamKey: vernamKey)
+    }}

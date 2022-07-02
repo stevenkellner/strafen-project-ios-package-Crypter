@@ -55,3 +55,11 @@ public struct UTF8<L> where L: Length {
         self.rawString = rawString
     }
 }
+
+extension UTF8: Decodable {
+    public init(from decoder: Decoder) throws {
+        let container = try decoder.singleValueContainer()
+        let rawString = try container.decode(String.self)
+        try self.init(rawString)
+    }
+}
